@@ -1,0 +1,10 @@
+// One-pole lowpass filter
+// Usage: val y = one_pole(x, cutoff);
+//   x      - input sample
+//   cutoff - normalised cutoff 0..1
+fun one_pole(x: real, cutoff: real) : real {
+  mem s;
+  val a = 1.0 - cutoff;
+  s = s * a + x * cutoff;
+  return s;
+}

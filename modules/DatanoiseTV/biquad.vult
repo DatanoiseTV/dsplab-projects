@@ -1,0 +1,10 @@
+// Transposed direct-form II biquad
+// Usage: val y = biquad(x, b0, b1, b2, a1, a2);
+fun biquad(x: real, b0: real, b1: real, b2: real, a1: real, a2: real) : real {
+  mem w1, w2;
+  val w0 = x - a1 * w1 - a2 * w2;
+  val y  = b0 * w0 + b1 * w1 + b2 * w2;
+  w2 = w1;
+  w1 = w0;
+  return y;
+}

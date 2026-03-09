@@ -1,0 +1,12 @@
+// Equal-power stereo panner (returns left/right pair via tuple)
+// Usage: val l, r = pan(x, pos);
+//   pos - pan position -1.0 (left) .. 1.0 (right)
+fun pan_left(x: real, pos: real) : real {
+  val angle = (pos + 1.0) * 0.785398; // (pos+1)/2 * pi/2
+  return x * cos(angle);
+}
+
+fun pan_right(x: real, pos: real) : real {
+  val angle = (pos + 1.0) * 0.785398;
+  return x * sin(angle);
+}

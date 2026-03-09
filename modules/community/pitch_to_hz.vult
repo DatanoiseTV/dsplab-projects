@@ -1,0 +1,5 @@
+// MIDI note number to frequency in Hz
+// Usage: val freq = pitch_to_hz(note);
+fun pitch_to_hz(note: int) : real {
+  return 440.0 * pow(2.0, (real(note) - 69.0) / 12.0);
+}

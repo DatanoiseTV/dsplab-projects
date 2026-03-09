@@ -1,0 +1,8 @@
+// Phasor (sawtooth ramp 0..1) at a given Hz
+// Usage: val phase = phasor(freq_hz);
+fun phasor(freq: real) : real {
+  mem phase;
+  phase = phase + freq / 44100.0;
+  if (phase >= 1.0) phase = phase - 1.0;
+  return phase;
+}

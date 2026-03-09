@@ -1,0 +1,27 @@
+// ADSR envelope
+// Usage: val env = adsr(gate, attack, decay, sustain, release);
+//   gate    - bool, 1 = note on
+//   attack  - seconds
+//   decay   - seconds
+//   sustain - level 0..1
+//   release - seconds
+fun adsr(gate: bool, attack: real, decay: real, sustain: real, release: real) : real {
+  mem env, stage;
+  // stage: 0=idle 1=attack 2=decay 3=sustain 4=release
+  val sr = 44100.0;
+  if (gate && stage == 0) stage = 1;
+  if (!gate && stage != 0) stage = 4;
+  if (stage == 1) {
+    env = env + 1.0 / (attack * sr + 1.0);
+    if (env >= 1.0) { env = 1.0; stage = 2; }
+  }
+  if (stage == 2) {
+    env = env - (env - sustain) / (decay * sr + 1.0);
+    if (env <= sustain + 0.001) { env = sustain; stage = 3; }
+  }
+  if (stage == 4) {
+    env = env - env / (release * sr + 1.0);
+    if (env < 0.0001) { env = 0.0; stage = 0; }
+  }
+  return env;
+}
