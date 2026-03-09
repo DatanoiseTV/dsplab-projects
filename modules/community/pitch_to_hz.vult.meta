@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Pitch to Hz",
+  "description": "Converts a MIDI note number (0-127) to frequency in Hz using the standard equal-temperament formula: 440 * 2^((note - 69) / 12).",
+  "author": "community",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "math",
+  "tags": ["utility", "midi", "pitch", "frequency", "conversion", "math"],
+  "complexity": "beginner",
+  "type": "module",
+  "functions": [
+    {
+      "name": "pitch_to_hz",
+      "signature": "pitch_to_hz(note:int) : real",
+      "description": "Returns frequency in Hz for the given MIDI note number."
+    }
+  ]
+}

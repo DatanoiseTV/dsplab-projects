@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Tape Delay",
+  "description": "Feedback delay emulating a tape echo unit. A one-pole lowpass on the feedback path simulates head-gap frequency loss, giving warmth and natural decay.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "effect",
+  "tags": ["effect", "delay", "echo", "tape", "feedback", "vintage"],
+  "complexity": "beginner",
+  "type": "preset",
+  "inputs": { "audio": true, "midi": false, "cv": false },
+  "knobs": {
+    "30": { "name": "Delay Time", "description": "Delay time, up to 2 seconds", "default": 0.25, "unit": "seconds" },
+    "31": { "name": "Feedback",   "description": "Feedback amount — keep below 0.9 to avoid runaway", "default": 0.4, "unit": "norm" },
+    "32": { "name": "Tone",       "description": "Feedback lowpass brightness", "default": 0.6, "unit": "norm" },
+    "33": { "name": "Mix",        "description": "Dry/wet mix", "default": 0.4, "unit": "norm" }
+  }
+}

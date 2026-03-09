@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Delay Line",
+  "description": "Single-tap interpolated delay line up to 4095 samples (~93 ms at 44.1 kHz). Linear interpolation allows fractional delays for pitch-shifting and chorus.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "effect",
+  "tags": ["delay", "buffer", "interpolated", "chorus", "echo", "pitch"],
+  "complexity": "intermediate",
+  "type": "module",
+  "functions": [
+    {
+      "name": "delay_line",
+      "signature": "delay_line(x:real, delay_smp:real) : real",
+      "description": "delay_smp is the delay in samples (fractional). Max 4095. Convert ms: delay_smp = ms * 44.1."
+    }
+  ]
+}

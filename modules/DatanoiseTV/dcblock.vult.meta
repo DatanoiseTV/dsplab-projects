@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "DC Blocker",
+  "description": "First-order high-pass filter tuned to approximately 20 Hz. Essential for removing DC offset in feedback paths or any signal that may drift.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "utility",
+  "tags": ["utility", "dc-block", "highpass", "offset", "feedback"],
+  "complexity": "beginner",
+  "type": "module",
+  "functions": [
+    {
+      "name": "dcblock",
+      "signature": "dcblock(x:real) : real",
+      "description": "Returns the input with DC component removed."
+    }
+  ]
+}

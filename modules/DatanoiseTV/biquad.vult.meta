@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Biquad Filter",
+  "description": "Transposed direct-form II biquad. Accepts raw coefficients, making it suitable as a building block for any second-order IIR filter design.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "filter",
+  "tags": ["filter", "biquad", "iir", "coefficients", "lowpass", "highpass", "bandpass"],
+  "complexity": "intermediate",
+  "type": "module",
+  "functions": [
+    {
+      "name": "biquad",
+      "signature": "biquad(x:real, b0:real, b1:real, b2:real, a1:real, a2:real) : real",
+      "description": "Standard biquad transfer function H(z) = (b0 + b1z^-1 + b2z^-2) / (1 + a1z^-1 + a2z^-2)."
+    }
+  ]
+}

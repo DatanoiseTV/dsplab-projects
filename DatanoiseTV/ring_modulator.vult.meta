@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "name": "Ring Modulator",
+  "description": "Multiplies the input by an internal carrier oscillator to produce sum and difference sidebands. Produces metallic, robotic and bell-like timbres.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "modulator",
+  "tags": ["effect", "ring-modulator", "am", "sideband", "metallic", "robotic"],
+  "complexity": "beginner",
+  "type": "preset",
+  "inputs": { "audio": true, "midi": false, "cv": false },
+  "knobs": {
+    "30": { "name": "Carrier Freq", "description": "Carrier oscillator frequency, 10 to 1010 Hz", "default": 0.1, "unit": "hz" },
+    "31": { "name": "Waveform",     "description": "Carrier waveform: 0 = sine, 1 = saw", "default": 0.0, "unit": "norm" },
+    "32": { "name": "Mix",          "description": "Dry/wet mix", "default": 1.0, "unit": "norm" }
+  }
+}

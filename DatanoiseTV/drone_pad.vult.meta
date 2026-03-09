@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Drone Pad",
+  "description": "Lush drone pad built from 4 detuned sawtooth oscillators through a resonant SVF lowpass, modulated by a slow LFO. Long attack and release for slow evolving textures.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "synthesizer",
+  "tags": ["synthesizer", "pad", "drone", "ambient", "saw", "detuned", "lfo"],
+  "complexity": "intermediate",
+  "type": "preset",
+  "inputs": { "audio": false, "midi": true, "cv": false },
+  "knobs": {
+    "30": { "name": "Detune",    "description": "Oscillator spread — 0 = unison, 1 = wide chorus", "default": 0.4, "unit": "norm" },
+    "31": { "name": "Cutoff",    "description": "SVF lowpass base cutoff", "default": 0.35, "unit": "norm" },
+    "32": { "name": "LFO Depth", "description": "LFO modulation depth on the filter cutoff", "default": 0.5, "unit": "norm" },
+    "33": { "name": "LFO Rate",  "description": "LFO speed, 0.05 to 2 Hz", "default": 0.1, "unit": "hz" }
+  }
+}

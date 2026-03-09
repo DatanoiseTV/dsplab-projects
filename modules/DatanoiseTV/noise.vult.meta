@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "name": "Noise Generators",
+  "description": "White and pink noise generators. The pink noise approximation uses Paul Kellet's method for accurate 1/f spectral shaping.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "modulator",
+  "tags": ["noise", "white-noise", "pink-noise", "random", "generator", "percussion"],
+  "complexity": "beginner",
+  "type": "module",
+  "functions": [
+    {
+      "name": "white_noise",
+      "signature": "white_noise() : real",
+      "description": "Returns white noise in the range -1..1 from a fast LCG."
+    },
+    {
+      "name": "pink_noise",
+      "signature": "pink_noise() : real",
+      "description": "Returns 1/f pink noise, normalised to approximately -1..1."
+    }
+  ]
+}

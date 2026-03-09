@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "name": "Simple Saw Synth",
+  "description": "Monophonic sawtooth synthesizer with a soft AR envelope. Good starting point for learning synthesis in Vult.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "synthesizer",
+  "tags": ["synthesizer", "saw", "monophonic", "beginner"],
+  "complexity": "beginner",
+  "type": "preset",
+  "inputs": { "audio": false, "midi": true, "cv": false },
+  "knobs": {
+    "30": { "name": "Attack",  "description": "Envelope attack time, 0-2 seconds", "default": 0.05, "unit": "seconds" },
+    "31": { "name": "Release", "description": "Envelope release time, 0-3 seconds", "default": 0.3,  "unit": "seconds" }
+  }
+}

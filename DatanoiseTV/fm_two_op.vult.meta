@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "name": "FM Two-Op",
+  "description": "Classic two-operator FM synthesizer. The modulator multiplies the carrier frequency by a ratio, producing inharmonic spectra at low ratios and bell-like tones at integer ratios.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "synthesizer",
+  "tags": ["synthesizer", "fm", "digital", "bells", "metallic", "monophonic"],
+  "complexity": "intermediate",
+  "type": "preset",
+  "inputs": { "audio": false, "midi": true, "cv": false },
+  "knobs": {
+    "30": { "name": "Ratio",       "description": "Modulator-to-carrier frequency ratio, 0.5 to 8.0", "default": 0.25, "unit": "norm" },
+    "31": { "name": "Mod Index",   "description": "Modulation index — higher = more sidebands", "default": 0.3,  "unit": "norm" }
+  }
+}

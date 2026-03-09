@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Phasor",
+  "description": "Phase accumulator that outputs a rising ramp from 0.0 to 1.0 at the given frequency. Use it to drive any waveform lookup or waveshaper.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "oscillator",
+  "tags": ["oscillator", "phasor", "ramp", "phase", "fundamental"],
+  "complexity": "beginner",
+  "type": "module",
+  "functions": [
+    {
+      "name": "phasor",
+      "signature": "phasor(freq:real) : real",
+      "description": "Returns a 0..1 ramp at freq Hz. Wraps cleanly with no discontinuity artefact."
+    }
+  ]
+}

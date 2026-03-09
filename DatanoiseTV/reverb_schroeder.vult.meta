@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "name": "Schroeder Reverb",
+  "description": "Freeverb-inspired reverb using 4 parallel comb filters feeding 2 series allpass stages. Suitable for halls and large spaces.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "effect",
+  "tags": ["effect", "reverb", "space", "room", "schroeder", "freeverb"],
+  "complexity": "intermediate",
+  "type": "preset",
+  "inputs": { "audio": true, "midi": false, "cv": false },
+  "knobs": {
+    "30": { "name": "Room Size", "description": "Comb filter feedback — larger = longer reverb tail", "default": 0.7, "unit": "norm" },
+    "31": { "name": "Wet/Dry",   "description": "Mix between dry and wet signal", "default": 0.35, "unit": "norm" }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "name": "Bitcrusher",
+  "description": "Bit depth and sample-rate reduction effect. Classic lo-fi character — dial in everything from subtle grit to extreme aliasing.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "effect",
+  "tags": ["effect", "bitcrusher", "lo-fi", "distortion", "digital"],
+  "complexity": "beginner",
+  "type": "preset",
+  "inputs": { "audio": true, "midi": false, "cv": false },
+  "knobs": {
+    "30": { "name": "Bit Depth",   "description": "Quantisation depth from 1 to 16 bits", "default": 0.5, "unit": "norm" },
+    "31": { "name": "Rate Reduce", "description": "Sample-rate reduction factor, 1x to 32x", "default": 0.0, "unit": "norm" }
+  }
+}

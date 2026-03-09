@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "6-Stage Phaser",
+  "description": "6-stage allpass phaser with LFO modulation and resonant feedback. Produces classic comb-notch sweeping reminiscent of vintage analog phasers.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "effect",
+  "tags": ["effect", "phaser", "modulation", "lfo", "allpass", "vintage"],
+  "complexity": "intermediate",
+  "type": "preset",
+  "inputs": { "audio": true, "midi": false, "cv": false },
+  "knobs": {
+    "30": { "name": "LFO Rate",     "description": "Phaser LFO speed, 0.05 to 5 Hz", "default": 0.1, "unit": "hz" },
+    "31": { "name": "LFO Depth",    "description": "Modulation depth of the allpass coefficient", "default": 0.6, "unit": "norm" },
+    "32": { "name": "Feedback",     "description": "Feedback around the allpass chain — adds resonance", "default": 0.4, "unit": "norm" },
+    "33": { "name": "Mix",          "description": "Dry/wet mix", "default": 0.7, "unit": "norm" }
+  }
+}

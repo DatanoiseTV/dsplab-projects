@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Noise Percussion",
+  "description": "Noise-based snare and hi-hat synthesizer. A coloured noise burst shaped by a bandpass SVF for the noise component and a resonant body mode for transient punch.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "drum",
+  "tags": ["drum", "snare", "hi-hat", "noise", "percussion", "svf"],
+  "complexity": "beginner",
+  "type": "preset",
+  "inputs": { "audio": false, "midi": true, "cv": false },
+  "knobs": {
+    "30": { "name": "Decay",      "description": "Envelope decay time", "default": 0.5, "unit": "norm" },
+    "31": { "name": "Tone",       "description": "Noise bandpass centre frequency", "default": 0.5, "unit": "norm" },
+    "32": { "name": "Body Pitch", "description": "Resonant body filter frequency", "default": 0.15, "unit": "norm" },
+    "33": { "name": "Body Mix",   "description": "Mix between noise and resonant body", "default": 0.3, "unit": "norm" }
+  }
+}

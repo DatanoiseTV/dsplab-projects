@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "name": "Stereo Panner",
+  "description": "Equal-power stereo panner providing separate left and right gain functions. Quarter-circle law ensures constant perceived loudness across the stereo field.",
+  "author": "community",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "utility",
+  "tags": ["utility", "pan", "stereo", "equal-power", "mixing"],
+  "complexity": "beginner",
+  "type": "module",
+  "functions": [
+    {
+      "name": "pan_left",
+      "signature": "pan_left(x:real, pos:real) : real",
+      "description": "Left channel gain. pos: -1.0 = full left, 0.0 = centre, 1.0 = full right."
+    },
+    {
+      "name": "pan_right",
+      "signature": "pan_right(x:real, pos:real) : real",
+      "description": "Right channel gain."
+    }
+  ]
+}

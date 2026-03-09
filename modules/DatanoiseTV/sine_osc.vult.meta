@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Sine Oscillator",
+  "description": "Phase-accumulator sine oscillator. Uses Vult's built-in sin() which maps to a table in C/embedded targets for efficiency.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "oscillator",
+  "tags": ["oscillator", "sine", "tone", "fundamental"],
+  "complexity": "beginner",
+  "type": "module",
+  "functions": [
+    {
+      "name": "sine_osc",
+      "signature": "sine_osc(freq:real) : real",
+      "description": "Returns a sine wave at freq Hz, amplitude -1..1."
+    }
+  ]
+}

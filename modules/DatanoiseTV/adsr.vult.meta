@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "ADSR Envelope",
+  "description": "Attack-Decay-Sustain-Release envelope generator. State-machine based with smooth transitions between stages.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-09",
+  "license": "MIT",
+  "category": "envelope",
+  "tags": ["envelope", "adsr", "amplitude", "modulation", "gate"],
+  "complexity": "beginner",
+  "type": "module",
+  "functions": [
+    {
+      "name": "adsr",
+      "signature": "adsr(gate:bool, attack:real, decay:real, sustain:real, release:real) : real",
+      "description": "Returns envelope level 0..1. Times are in seconds. Sustain is a level 0..1."
+    }
+  ]
+}
