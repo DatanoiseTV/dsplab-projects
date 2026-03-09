@@ -1,64 +1,90 @@
-// Schroeder reverb (4 comb + 2 allpass)
-// Author: DatanoiseTV
+// Freeverb-inspired reverb: 4 parallel comb + 2 series allpass
+// Knob 30: room size (feedback)  Knob 31: wet/dry mix
 
-mem fb;
-mem mix;
-
-// Comb filter state
-mem c1: array(real, 1277);
-mem c2: array(real, 1491);
-mem c3: array(real, 1693);
-mem c4: array(real, 1867);
-mem ci1, ci2, ci3, ci4;
-
-// Allpass state
-mem a1: array(real, 556);
-mem a2: array(real, 441);
-mem ai1, ai2;
-
-fun comb(buf: array(real, 1277), idx: int, x: real, g: real) : real {
-  val y   = get(buf, idx);
-  val idx2 = (idx + 1) % 1277;
-  set(buf, idx2, x + g * y);
+fun dcblock(x:real) : real {
+  mem x1, y1;
+  val y = x - x1 + y1 * 0.995;
+  x1 = x;
+  y1 = y;
   return y;
 }
 
-fun process(input: real) : real {
-  val dry = input;
-
-  // 4 parallel comb filters
-  val y1 = get(c1, ci1); set(c1, ci1, input + fb * y1); ci1 = (ci1 + 1) % 1277;
-  val y2 = get(c2, ci2); set(c2, ci2, input + fb * y2); ci2 = (ci2 + 1) % 1491;
-  val y3 = get(c3, ci3); set(c3, ci3, input + fb * y3); ci3 = (ci3 + 1) % 1693;
-  val y4 = get(c4, ci4); set(c4, ci4, input + fb * y4); ci4 = (ci4 + 1) % 1867;
-  val comb_sum = (y1 + y2 + y3 + y4) * 0.25;
-
-  // 2 series allpass
-  val ap1_in = comb_sum;
-  val ap1_d  = get(a1, ai1);
-  set(a1, ai1, ap1_in + 0.5 * ap1_d);
-  ai1 = (ai1 + 1) % 556;
-  val ap1_out = ap1_d - 0.5 * ap1_in;
-
-  val ap2_d  = get(a2, ai2);
-  set(a2, ai2, ap1_out + 0.5 * ap2_d);
-  ai2 = (ai2 + 1) % 441;
-  val wet = ap2_d - 0.5 * ap1_out;
-
-  return dry * (1.0 - mix) + wet * mix;
+fun comb1(x:real, fb:real) : real {
+  mem buf : array(real, 1116);
+  mem idx;
+  val y = get(buf, idx);
+  set(buf, idx, x + fb * y);
+  idx = (idx + 1) % 1116;
+  return y;
 }
 
-and noteOn(note: int, velocity: int, channel: int) { }
-and noteOff(note: int, channel: int) { }
-
-and controlChange(control: int, value: int, channel: int) {
-  if (control == 30) fb  = real(value) / 127.0 * 0.9;
-  if (control == 31) mix = real(value) / 127.0;
+fun comb2(x:real, fb:real) : real {
+  mem buf : array(real, 1188);
+  mem idx;
+  val y = get(buf, idx);
+  set(buf, idx, x + fb * y);
+  idx = (idx + 1) % 1188;
+  return y;
 }
 
+fun comb3(x:real, fb:real) : real {
+  mem buf : array(real, 1277);
+  mem idx;
+  val y = get(buf, idx);
+  set(buf, idx, x + fb * y);
+  idx = (idx + 1) % 1277;
+  return y;
+}
+
+fun comb4(x:real, fb:real) : real {
+  mem buf : array(real, 1356);
+  mem idx;
+  val y = get(buf, idx);
+  set(buf, idx, x + fb * y);
+  idx = (idx + 1) % 1356;
+  return y;
+}
+
+fun allpass1(x:real) : real {
+  mem buf : array(real, 556);
+  mem idx;
+  val d   = get(buf, idx);
+  val out = d - x;
+  set(buf, idx, x + d * 0.5);
+  idx = (idx + 1) % 556;
+  return out;
+}
+
+fun allpass2(x:real) : real {
+  mem buf : array(real, 441);
+  mem idx;
+  val d   = get(buf, idx);
+  val out = d - x;
+  set(buf, idx, x + d * 0.5);
+  idx = (idx + 1) % 441;
+  return out;
+}
+
+fun process(input:real) : real {
+  mem fb_cc;
+  mem mix_cc;
+
+  val fb   = fb_cc * 0.84 + 0.1;
+  val mix  = mix_cc;
+  val mono = input * 0.015;
+
+  val csum = c1:comb1(mono, fb) + c2:comb2(mono, fb)
+           + c3:comb3(mono, fb) + c4:comb4(mono, fb);
+  val wet = ap2:allpass2(ap1:allpass1(csum));
+  return input * (1.0 - mix) + dcblock(wet) * mix;
+}
+and noteOn(note:int, velocity:int, channel:int) { }
+and noteOff(note:int, channel:int) { }
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) fb_cc  = real(value) / 127.0;
+  if(control == 31) mix_cc = real(value) / 127.0;
+}
 and default() {
-  fb  = 0.7;
-  mix = 0.4;
-  ci1 = 0; ci2 = 0; ci3 = 0; ci4 = 0;
-  ai1 = 0; ai2 = 0;
+  fb_cc  = 0.7;
+  mix_cc = 0.35;
 }

@@ -1,45 +1,54 @@
 // Two-operator FM synthesizer
-// Author: DatanoiseTV
+// Knob 30: modulator ratio  Knob 31: modulation index
 
-mem phase_c, phase_m;
-mem freq, ratio, index, amp;
-mem gate;
+fun process(input:real) : real {
+  mem phase_c;
+  mem phase_m;
+  mem freq;
+  mem ratio_cc;
+  mem index_cc;
+  mem amp;
+  mem gate;
+  mem env;
+  mem env_k;
 
-fun process(input: real) : real {
-  val sr     = 44100.0;
-  val fc     = 440.0 * pow(2.0, (freq - 69.0) / 12.0);
-  val fm     = fc * ratio;
-  val mod    = sin(6.283185 * phase_m) * index * fm / sr;
+  val sr    = 44100.0;
+  val ratio = ratio_cc * 7.0 + 0.5;
+  val index = index_cc * 10.0;
+  val fm    = freq * ratio;
 
-  phase_m = phase_m + (fm / sr) + mod * 0.0001;
-  if (phase_m > 1.0) phase_m = phase_m - 1.0;
+  val mod   = sin(6.283185 * phase_m) * index;
+  phase_m = phase_m + fm / sr;
+  phase_m = if phase_m > 1.0 then phase_m - 1.0 else phase_m;
 
-  phase_c = phase_c + (fc + mod) / sr;
-  if (phase_c > 1.0) phase_c = phase_c - 1.0;
+  phase_c = phase_c + (freq + mod) / sr;
+  phase_c = if phase_c > 1.0 then phase_c - 1.0 else phase_c;
 
-  return sin(6.283185 * phase_c) * amp * (if gate then 1.0 else 0.0);
+  val env_target = if gate then 1.0 else 0.0;
+  env = env + (env_target - env) * env_k;
+
+  return sin(6.283185 * phase_c) * amp * env;
 }
-
-and noteOn(note: int, velocity: int, channel: int) {
-  freq  = real(note);
-  amp   = real(velocity) / 127.0;
-  gate  = true;
+and noteOn(note:int, velocity:int, channel:int) {
+  freq    = 440.0 * pow(2.0, (real(note) - 69.0) / 12.0);
+  amp     = real(velocity) / 127.0;
+  gate    = true;
   phase_c = 0.0;
   phase_m = 0.0;
 }
-
-and noteOff(note: int, channel: int) {
+and noteOff(note:int, channel:int) {
   gate = false;
 }
-
-and controlChange(control: int, value: int, channel: int) {
-  if (control == 30) ratio = real(value) / 16.0 + 0.5;
-  if (control == 31) index = real(value) / 10.0;
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) ratio_cc = real(value) / 127.0;
+  if(control == 31) index_cc = real(value) / 127.0;
 }
-
 and default() {
-  ratio = 2.0;
-  index = 3.0;
-  amp   = 0.5;
-  gate  = false;
+  ratio_cc = 0.25;
+  index_cc = 0.3;
+  amp      = 0.5;
+  gate     = false;
+  env      = 0.0;
+  env_k    = 0.002;
+  freq     = 440.0;
 }

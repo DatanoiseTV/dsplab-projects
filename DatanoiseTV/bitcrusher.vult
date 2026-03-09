@@ -1,36 +1,32 @@
-// Bitcrusher + Sample Rate Reducer
-// Author: DatanoiseTV
+// Bitcrusher and sample-rate reducer
+// Knob 30: bit depth (1-16)  Knob 31: rate reduction
 
-mem bits;
-mem rate_div;
-mem hold;
-mem counter;
+fun process(input:real) : real {
+  mem bits_cc;
+  mem rate_cc;
+  mem hold;
+  mem counter;
 
-fun crush(x: real, b: real) : real {
-  val levels = pow(2.0, b) - 1.0;
-  return floor(x * levels + 0.5) / levels;
-}
+  val bits     = bits_cc * 15.0 + 1.0;
+  val rate_div = int(rate_cc * 31.0) + 1;
 
-fun process(input: real) : real {
   counter = counter + 1;
-  if (counter >= rate_div) {
-    hold    = crush(input, bits);
+  if(counter >= rate_div) {
+    val levels = pow(2.0, bits) - 1.0;
+    hold    = floor(input * levels + 0.5) / levels;
     counter = 0;
   }
   return hold;
 }
-
-and noteOn(note: int, velocity: int, channel: int) { }
-and noteOff(note: int, channel: int) { }
-
-and controlChange(control: int, value: int, channel: int) {
-  if (control == 30) bits     = real(value) / 127.0 * 15.0 + 1.0;
-  if (control == 31) rate_div = int(real(value) / 127.0 * 31.0) + 1;
+and noteOn(note:int, velocity:int, channel:int) { }
+and noteOff(note:int, channel:int) { }
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) bits_cc = real(value) / 127.0;
+  if(control == 31) rate_cc = real(value) / 127.0;
 }
-
 and default() {
-  bits     = 8.0;
-  rate_div = 1;
-  counter  = 0;
-  hold     = 0.0;
+  bits_cc = 0.5;
+  rate_cc = 0.0;
+  hold    = 0.0;
+  counter = 0;
 }

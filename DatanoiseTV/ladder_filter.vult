@@ -1,37 +1,34 @@
-// Moog-style 4-pole ladder filter
-// Author: DatanoiseTV
+// Moog-style 4-pole ladder filter with tanh saturation
+// Knob 30: cutoff  Knob 31: resonance
 
-mem cutoff;
-mem resonance;
-mem s1, s2, s3, s4;
-
-fun tanh_approx(x: real) : real {
+fun tanhx(x:real) : real {
   val x2 = x * x;
   return x * (27.0 + x2) / (27.0 + 9.0 * x2);
 }
 
-fun process(input: real) : real {
-  val fc   = cutoff * 0.45;
-  val k    = resonance * 3.98;
-  val g    = fc / (1.0 + fc);
+fun process(input:real) : real {
+  mem s0, s1, s2, s3;
+  mem cut_cc;
+  mem res_cc;
 
-  val u    = tanh_approx(input - k * s4);
-  s1 = s1 + g * (tanh_approx(u)  - tanh_approx(s1));
-  s2 = s2 + g * (tanh_approx(s1) - tanh_approx(s2));
-  s3 = s3 + g * (tanh_approx(s2) - tanh_approx(s3));
-  s4 = s4 + g * (tanh_approx(s3) - tanh_approx(s4));
-  return s4;
+  val fc  = cut_cc * 0.45 + 0.002;
+  val res = res_cc * 3.9;
+
+  val u = tanhx(input - res * s3);
+  s0 = s0 + fc * (tanhx(u)   - tanhx(s0));
+  s1 = s1 + fc * (tanhx(s0)  - tanhx(s1));
+  s2 = s2 + fc * (tanhx(s1)  - tanhx(s2));
+  s3 = s3 + fc * (tanhx(s2)  - tanhx(s3));
+
+  return s3;
 }
-
-and noteOn(note: int, velocity: int, channel: int) { }
-and noteOff(note: int, channel: int) { }
-
-and controlChange(control: int, value: int, channel: int) {
-  if (control == 30) cutoff    = real(value) / 127.0;
-  if (control == 31) resonance = real(value) / 127.0;
+and noteOn(note:int, velocity:int, channel:int) { }
+and noteOff(note:int, channel:int) { }
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) cut_cc = real(value) / 127.0;
+  if(control == 31) res_cc = real(value) / 127.0;
 }
-
 and default() {
-  cutoff    = 0.5;
-  resonance = 0.1;
+  cut_cc = 0.5;
+  res_cc = 0.1;
 }
