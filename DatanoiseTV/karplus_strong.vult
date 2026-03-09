@@ -1,0 +1,67 @@
+// Karplus-Strong plucked string synthesis
+// Knob 30: damping (string brightness)  Knob 31: output level
+
+fun ks_string(freq:real, trigger:bool, damp:real) : real {
+  mem buf : array(real, 2048);
+  mem write_idx;
+  mem read_frac;
+  mem period;
+  mem running;
+
+  val sr = 44100.0;
+
+  if(trigger) {
+    period    = sr / (freq + 0.001);
+    write_idx = 0;
+    read_frac = 0.0;
+    running   = true;
+    // Fill buffer with band-limited noise burst
+    val i = 0;
+    while(i < int(period) && i < 2047) {
+      val n = real((write_idx * 1664525 + 1013904223) % 32768) / 16384.0 - 1.0;
+      set(buf, i, n);
+      i = i + 1;
+    }
+  }
+
+  val out = 0.0;
+  if(running) {
+    val iperiod = int(period);
+    val idx0    = write_idx % (iperiod + 1);
+    val idx1    = (write_idx + 1) % (iperiod + 1);
+    val y0      = get(buf, idx0);
+    val y1      = get(buf, idx1);
+    // Lowpass feedback loop
+    val avg = (y0 + y1) * 0.5 * damp;
+    set(buf, idx0, avg);
+    out       = avg;
+    write_idx = (write_idx + 1) % (iperiod + 1);
+  }
+  return out;
+}
+
+fun process(input:real) : real {
+  mem freq;
+  mem trigger;
+  mem damp_cc;
+  mem amp_cc;
+
+  val out = ks_string(freq, trigger, damp_cc);
+  trigger = false;
+  return out * amp_cc;
+}
+and noteOn(note:int, velocity:int, channel:int) {
+  freq    = 440.0 * pow(2.0, (real(note) - 69.0) / 12.0);
+  trigger = true;
+}
+and noteOff(note:int, channel:int) { }
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) damp_cc = real(value) / 127.0 * 0.15 + 0.84;
+  if(control == 31) amp_cc  = real(value) / 127.0;
+}
+and default() {
+  freq    = 440.0;
+  trigger = false;
+  damp_cc = 0.96;
+  amp_cc  = 0.8;
+}

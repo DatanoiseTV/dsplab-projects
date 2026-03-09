@@ -1,0 +1,32 @@
+// Analog-style wavefolder
+// Knob 30: fold amount  Knob 31: input gain  Knob 32: mix
+
+fun fold(x:real) : real {
+  // Triangle fold: maps any real to -1..1 with folds
+  val a  = x * 0.25 + 0.25;
+  val fl = a - floor(a);
+  val tri = if fl < 0.5 then fl * 4.0 - 1.0 else (1.0 - fl) * 4.0 - 1.0;
+  return tri;
+}
+
+fun process(input:real) : real {
+  mem fold_cc;
+  mem gain_cc;
+  mem mix_cc;
+
+  val driven = input * (gain_cc * 6.0 + 1.0);
+  val folded = fold(driven * (fold_cc * 4.0 + 1.0));
+  return input * (1.0 - mix_cc) + folded * mix_cc;
+}
+and noteOn(note:int, velocity:int, channel:int) { }
+and noteOff(note:int, channel:int) { }
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) fold_cc = real(value) / 127.0;
+  if(control == 31) gain_cc = real(value) / 127.0;
+  if(control == 32) mix_cc  = real(value) / 127.0;
+}
+and default() {
+  fold_cc = 0.3;
+  gain_cc = 0.2;
+  mix_cc  = 0.8;
+}

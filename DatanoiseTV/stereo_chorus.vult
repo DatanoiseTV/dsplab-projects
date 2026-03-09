@@ -1,0 +1,53 @@
+// Stereo chorus effect (summed to mono for DSPLab single-output)
+// Knob 30: rate  Knob 31: depth  Knob 32: mix
+
+fun chorus_voice(x:real, delay_buf:array(real,4096), lfo_phase:real, depth:real) : real {
+  mem write_pos;
+  val buf_size = 4096;
+  set(delay_buf, write_pos % buf_size, x);
+  // LFO modulates delay time between 1ms and (1+depth*20)ms
+  val lfo       = sin(6.283185 * lfo_phase) * 0.5 + 0.5;
+  val delay_ms  = 1.0 + lfo * depth * 20.0;
+  val delay_smp = delay_ms * 44.1;
+  val di        = int(delay_smp);
+  val frac      = delay_smp - real(di);
+  val r0        = get(delay_buf, (write_pos - di + buf_size)     % buf_size);
+  val r1        = get(delay_buf, (write_pos - di - 1 + buf_size) % buf_size);
+  write_pos = (write_pos + 1) % buf_size;
+  return r0 + (r1 - r0) * frac;
+}
+
+fun process(input:real) : real {
+  mem lfo1_phase;
+  mem lfo2_phase;
+  mem buf1 : array(real, 4096);
+  mem buf2 : array(real, 4096);
+  mem rate_cc;
+  mem depth_cc;
+  mem mix_cc;
+
+  val sr   = 44100.0;
+  val rate = rate_cc * 4.0 + 0.1;
+
+  lfo1_phase = lfo1_phase + rate / sr;
+  lfo1_phase = if lfo1_phase > 1.0 then lfo1_phase - 1.0 else lfo1_phase;
+  lfo2_phase = lfo2_phase + rate / sr;
+  lfo2_phase = if lfo2_phase > 1.0 then lfo2_phase - 1.0 else lfo2_phase;
+
+  val v1  = cv1:chorus_voice(input, buf1, lfo1_phase,          depth_cc);
+  val v2  = cv2:chorus_voice(input, buf2, lfo2_phase + 0.5,    depth_cc);
+  val wet = (v1 + v2) * 0.5;
+  return input * (1.0 - mix_cc) + wet * mix_cc;
+}
+and noteOn(note:int, velocity:int, channel:int) { }
+and noteOff(note:int, channel:int) { }
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) rate_cc  = real(value) / 127.0;
+  if(control == 31) depth_cc = real(value) / 127.0;
+  if(control == 32) mix_cc   = real(value) / 127.0;
+}
+and default() {
+  rate_cc  = 0.15;
+  depth_cc = 0.3;
+  mix_cc   = 0.5;
+}

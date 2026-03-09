@@ -1,0 +1,52 @@
+// RMS compressor with attack, release and makeup gain
+// Knob 30: threshold  Knob 31: ratio  Knob 32: attack  Knob 33: makeup gain
+
+fun process(input:real) : real {
+  mem thresh_cc;
+  mem ratio_cc;
+  mem attack_cc;
+  mem gain_cc;
+  mem env;
+  mem gain_smooth;
+
+  val sr = 44100.0;
+
+  // RMS envelope follower
+  val sq       = input * input;
+  val atk      = 1.0 - pow(0.001, 1.0 / (attack_cc * 0.1 * sr + 1.0));
+  val rel      = 1.0 - pow(0.001, 1.0 / (0.3 * sr + 1.0));
+  val env_k    = if sq > env then atk else rel;
+  env          = env + (sq - env) * env_k;
+  val rms      = sqrt(env + 0.0000001);
+
+  // Gain computation
+  val threshold = thresh_cc * 0.9 + 0.05;
+  val ratio     = ratio_cc * 19.0 + 1.0;
+  val over      = rms - threshold;
+  val raw_gain  = if over > 0.0
+                  then threshold + over / ratio
+                  else rms;
+  val target    = if rms > 0.0001 then raw_gain / rms else 1.0;
+
+  // Smooth gain
+  gain_smooth = gain_smooth + (target - gain_smooth) * 0.001;
+
+  val makeup = gain_cc * 4.0 + 1.0;
+  return input * gain_smooth * makeup;
+}
+and noteOn(note:int, velocity:int, channel:int) { }
+and noteOff(note:int, channel:int) { }
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) thresh_cc = real(value) / 127.0;
+  if(control == 31) ratio_cc  = real(value) / 127.0;
+  if(control == 32) attack_cc = real(value) / 127.0;
+  if(control == 33) gain_cc   = real(value) / 127.0;
+}
+and default() {
+  thresh_cc   = 0.5;
+  ratio_cc    = 0.2;
+  attack_cc   = 0.3;
+  gain_cc     = 0.2;
+  env         = 0.0;
+  gain_smooth = 1.0;
+}

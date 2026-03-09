@@ -1,0 +1,44 @@
+// Tape-style delay with feedback and tone control
+// Knob 30: delay time  Knob 31: feedback  Knob 32: tone (LP on feedback)  Knob 33: mix
+
+fun process(input:real) : real {
+  mem buf : array(real, 88200);
+  mem write_pos;
+  mem fb_cc;
+  mem time_cc;
+  mem tone_cc;
+  mem mix_cc;
+  mem tone_state;
+
+  val buf_size  = 88200;
+  val max_delay = 88199.0;
+
+  // Write dry + feedback into buffer
+  val delay_smp = int(time_cc * max_delay) + 1;
+  val read_pos  = (write_pos - delay_smp + buf_size) % buf_size;
+  val delayed   = get(buf, read_pos);
+
+  // One-pole lowpass on feedback path (tape head tone)
+  val tc        = tone_cc * 0.9 + 0.05;
+  tone_state    = tone_state + (delayed - tone_state) * tc;
+  val fb        = fb_cc * 0.9;
+
+  set(buf, write_pos, input + tone_state * fb);
+  write_pos = (write_pos + 1) % buf_size;
+
+  return input * (1.0 - mix_cc) + delayed * mix_cc;
+}
+and noteOn(note:int, velocity:int, channel:int) { }
+and noteOff(note:int, channel:int) { }
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) time_cc = real(value) / 127.0;
+  if(control == 31) fb_cc   = real(value) / 127.0;
+  if(control == 32) tone_cc = real(value) / 127.0;
+  if(control == 33) mix_cc  = real(value) / 127.0;
+}
+and default() {
+  time_cc = 0.25;
+  fb_cc   = 0.4;
+  tone_cc = 0.6;
+  mix_cc  = 0.4;
+}

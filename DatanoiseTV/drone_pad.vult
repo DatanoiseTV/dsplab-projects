@@ -1,0 +1,79 @@
+// Drone pad: 4 detuned saws through SVF with slow LFO
+// Knob 30: detune spread  Knob 31: filter cutoff  Knob 32: LFO depth  Knob 33: LFO rate
+
+fun svf_lp(x:real, fc:real, q:real) : real {
+  mem ic1, ic2;
+  val k   = 1.0 / (q + 0.5);
+  val hp  = (x - k * ic1 - ic2) / (1.0 + k * fc + fc * fc);
+  val bp  = fc * hp + ic1;
+  val lp  = fc * bp + ic2;
+  ic1 = fc * hp + bp;
+  ic2 = fc * bp + lp;
+  return lp;
+}
+
+fun saw_osc(freq:real) : real {
+  mem phase;
+  val sr = 44100.0;
+  phase  = phase + freq / sr;
+  phase  = if phase > 1.0 then phase - 1.0 else phase;
+  return phase * 2.0 - 1.0;
+}
+
+fun process(input:real) : real {
+  mem freq;
+  mem detune_cc;
+  mem cut_cc;
+  mem lfo_depth_cc;
+  mem lfo_rate_cc;
+  mem lfo_phase;
+  mem amp;
+  mem gate;
+  mem env;
+
+  val sr      = 44100.0;
+  val spread  = detune_cc * 0.04;
+  val v1 = o1:saw_osc(freq * (1.0 - spread * 1.5));
+  val v2 = o2:saw_osc(freq * (1.0 - spread * 0.5));
+  val v3 = o3:saw_osc(freq * (1.0 + spread * 0.5));
+  val v4 = o4:saw_osc(freq * (1.0 + spread * 1.5));
+  val mix = (v1 + v2 + v3 + v4) * 0.25;
+
+  lfo_phase = lfo_phase + (lfo_rate_cc * 2.0 + 0.05) / sr;
+  lfo_phase = if lfo_phase > 1.0 then lfo_phase - 1.0 else lfo_phase;
+  val lfo = sin(6.283185 * lfo_phase) * lfo_depth_cc * 0.3;
+
+  val fc = (cut_cc + lfo) * (cut_cc + lfo) * 0.45 + 0.002;
+  val fc_clip = if fc > 0.49 then 0.49 else if fc < 0.001 then 0.001 else fc;
+
+  val env_target = if gate then 1.0 else 0.0;
+  val ek = if gate then 0.0002 else 0.0001;
+  env = env + (env_target - env) * ek;
+
+  val filtered = f:svf_lp(mix, fc_clip, 0.7);
+  return filtered * env * amp;
+}
+and noteOn(note:int, velocity:int, channel:int) {
+  freq = 440.0 * pow(2.0, (real(note) - 69.0) / 12.0);
+  amp  = real(velocity) / 127.0;
+  gate = true;
+}
+and noteOff(note:int, channel:int) {
+  gate = false;
+}
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) detune_cc    = real(value) / 127.0;
+  if(control == 31) cut_cc       = real(value) / 127.0;
+  if(control == 32) lfo_depth_cc = real(value) / 127.0;
+  if(control == 33) lfo_rate_cc  = real(value) / 127.0;
+}
+and default() {
+  freq          = 110.0;
+  detune_cc     = 0.4;
+  cut_cc        = 0.35;
+  lfo_depth_cc  = 0.5;
+  lfo_rate_cc   = 0.1;
+  amp           = 0.6;
+  gate          = false;
+  env           = 0.0;
+}

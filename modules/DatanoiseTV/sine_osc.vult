@@ -1,0 +1,11 @@
+// Band-limited sine oscillator
+// Usage: val y = sine_osc(freq_hz);
+//   Returns a sine wave at the given frequency.
+//   Uses a phase accumulator with reset-safe wrapping.
+fun sine_osc(freq:real) : real {
+  mem phase;
+  val sr = 44100.0;
+  phase  = phase + freq / sr;
+  phase  = if phase >= 1.0 then phase - 1.0 else phase;
+  return sin(6.283185307 * phase);
+}

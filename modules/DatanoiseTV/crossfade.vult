@@ -1,0 +1,7 @@
+// Equal-power crossfade between two signals
+// Usage: val y = xfade(a, b, pos);
+//   pos - 0.0 = full a, 1.0 = full b
+fun xfade(a:real, b:real, pos:real) : real {
+  val angle = pos * 1.5707963;
+  return a * cos(angle) + b * sin(angle);
+}

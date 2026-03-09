@@ -1,0 +1,46 @@
+// 6-stage phaser with LFO and feedback
+// Knob 30: LFO rate  Knob 31: LFO depth  Knob 32: feedback  Knob 33: mix
+
+fun ap1(x:real, g:real) : real {
+  mem s;
+  val y = g * (x - s) + s;
+  s = x + g * (y - x);
+  return y;
+}
+
+fun process(input:real) : real {
+  mem lfo_phase;
+  mem rate_cc;
+  mem depth_cc;
+  mem fb_cc;
+  mem mix_cc;
+  mem fb_state;
+
+  val sr    = 44100.0;
+  val rate  = rate_cc * 5.0 + 0.05;
+  lfo_phase = lfo_phase + rate / sr;
+  lfo_phase = if lfo_phase > 1.0 then lfo_phase - 1.0 else lfo_phase;
+
+  val lfo = sin(6.283185 * lfo_phase);
+  val g   = (lfo * depth_cc + depth_cc + 0.01) * 0.49;
+
+  val xfb = input + fb_state * fb_cc * 0.9;
+  val y   = a1:ap1(a2:ap1(a3:ap1(a4:ap1(a5:ap1(a6:ap1(xfb, g), g), g), g), g), g);
+  fb_state = y;
+
+  return input * (1.0 - mix_cc) + (input + y) * 0.5 * mix_cc;
+}
+and noteOn(note:int, velocity:int, channel:int) { }
+and noteOff(note:int, channel:int) { }
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) rate_cc  = real(value) / 127.0;
+  if(control == 31) depth_cc = real(value) / 127.0;
+  if(control == 32) fb_cc    = real(value) / 127.0;
+  if(control == 33) mix_cc   = real(value) / 127.0;
+}
+and default() {
+  rate_cc  = 0.1;
+  depth_cc = 0.6;
+  fb_cc    = 0.4;
+  mix_cc   = 0.7;
+}

@@ -1,0 +1,72 @@
+// Subtractive synthesizer: saw + one-pole LP filter + ADSR envelope
+// Knob 30: filter cutoff  Knob 31: filter resonance (Q)
+// Knob 32: attack         Knob 33: release
+
+fun tanhx(x:real) : real {
+  val x2 = x * x;
+  return x * (27.0 + x2) / (27.0 + 9.0 * x2);
+}
+
+// 2-pole SVF lowpass used as the filter section
+fun svf_lp(x:real, fc:real, q:real) : real {
+  mem ic1, ic2;
+  val k   = 1.0 / (q + 0.5);
+  val a   = fc;
+  val hp  = (x - k * ic1 - ic2) / (1.0 + k * a + a * a);
+  val bp  = a * hp + ic1;
+  val lp  = a * bp + ic2;
+  ic1 = a * hp + bp;
+  ic2 = a * bp + lp;
+  return lp;
+}
+
+fun process(input:real) : real {
+  mem phase;
+  mem freq;
+  mem amp;
+  mem gate;
+  mem env;
+  mem attack_k;
+  mem release_k;
+  mem cut_cc;
+  mem res_cc;
+
+  val sr  = 44100.0;
+  phase = phase + freq / sr;
+  phase = if phase > 1.0 then phase - 1.0 else phase;
+  val saw = phase * 2.0 - 1.0;
+
+  val env_target = if gate then 1.0 else 0.0;
+  val ek = if gate then attack_k else release_k;
+  env = env + (env_target - env) * ek;
+
+  val fc = cut_cc * cut_cc * 0.49 + 0.001;
+  val q  = res_cc * 3.5 + 0.5;
+  val filtered = svf_lp(saw * env, fc, q);
+  return tanhx(filtered) * amp;
+}
+and noteOn(note:int, velocity:int, channel:int) {
+  freq  = 440.0 * pow(2.0, (real(note) - 69.0) / 12.0);
+  amp   = real(velocity) / 127.0;
+  gate  = true;
+  phase = 0.0;
+}
+and noteOff(note:int, channel:int) {
+  gate = false;
+}
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) cut_cc    = real(value) / 127.0;
+  if(control == 31) res_cc    = real(value) / 127.0;
+  if(control == 32) attack_k  = 1.0 - pow(0.001, 1.0 / (real(value) / 127.0 * 2.0 * 44100.0 + 1.0));
+  if(control == 33) release_k = 1.0 - pow(0.001, 1.0 / (real(value) / 127.0 * 4.0 * 44100.0 + 1.0));
+}
+and default() {
+  cut_cc    = 0.4;
+  res_cc    = 0.1;
+  attack_k  = 0.005;
+  release_k = 0.001;
+  freq      = 440.0;
+  amp       = 0.5;
+  gate      = false;
+  env       = 0.0;
+}

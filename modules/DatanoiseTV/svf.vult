@@ -1,0 +1,39 @@
+// State Variable Filter - outputs lowpass, bandpass, or highpass
+// Usage: val lp = svf_lp(x, fc, q);
+//        val bp = svf_bp(x, fc, q);
+//        val hp = svf_hp(x, fc, q);
+//   fc - normalised cutoff 0..0.49
+//   q  - resonance, 0.5 = no resonance, higher = more
+
+fun svf_lp(x:real, fc:real, q:real) : real {
+  mem ic1, ic2;
+  val k  = 1.0 / (q + 0.5);
+  val hp = (x - k * ic1 - ic2) / (1.0 + k * fc + fc * fc);
+  val bp = fc * hp + ic1;
+  val lp = fc * bp + ic2;
+  ic1 = fc * hp + bp;
+  ic2 = fc * bp + lp;
+  return lp;
+}
+
+fun svf_bp(x:real, fc:real, q:real) : real {
+  mem ic1, ic2;
+  val k  = 1.0 / (q + 0.5);
+  val hp = (x - k * ic1 - ic2) / (1.0 + k * fc + fc * fc);
+  val bp = fc * hp + ic1;
+  val lp = fc * bp + ic2;
+  ic1 = fc * hp + bp;
+  ic2 = fc * bp + lp;
+  return bp;
+}
+
+fun svf_hp(x:real, fc:real, q:real) : real {
+  mem ic1, ic2;
+  val k  = 1.0 / (q + 0.5);
+  val hp = (x - k * ic1 - ic2) / (1.0 + k * fc + fc * fc);
+  val bp = fc * hp + ic1;
+  val lp = fc * bp + ic2;
+  ic1 = fc * hp + bp;
+  ic2 = fc * bp + lp;
+  return hp;
+}

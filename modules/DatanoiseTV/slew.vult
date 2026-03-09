@@ -1,0 +1,9 @@
+// Slew limiter (portamento / lag processor)
+// Usage: val y = slew(x, rate);
+//   rate - slew speed 0..1 (0 = instant, 1 = very slow)
+//   Typical values: 0.001 (fast) to 0.0001 (slow portamento)
+fun slew(x:real, rate:real) : real {
+  mem s;
+  s = s + (x - s) * rate;
+  return s;
+}

@@ -1,0 +1,16 @@
+// Single-tap delay line with linear interpolation
+// Usage: val y = delay_line(x, delay_samples);
+//   delay_samples - delay in samples, max 4095
+//   For milliseconds: delay_samples = ms * 44.1
+fun delay_line(x:real, delay_smp:real) : real {
+  mem buf : array(real, 4096);
+  mem write_pos;
+  val buf_size = 4096;
+  set(buf, write_pos, x);
+  val di   = int(delay_smp);
+  val frac = delay_smp - real(di);
+  val r0   = get(buf, (write_pos - di + buf_size)     % buf_size);
+  val r1   = get(buf, (write_pos - di - 1 + buf_size) % buf_size);
+  write_pos = (write_pos + 1) % buf_size;
+  return r0 + (r1 - r0) * frac;
+}

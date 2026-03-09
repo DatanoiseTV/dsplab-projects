@@ -1,0 +1,10 @@
+// DC blocker (high-pass at ~20 Hz)
+// Usage: val y = dcblock(x);
+// Essential for any feedback path or offset-prone signal.
+fun dcblock(x:real) : real {
+  mem x1, y1;
+  val y = x - x1 + y1 * 0.995;
+  x1 = x;
+  y1 = y;
+  return y;
+}

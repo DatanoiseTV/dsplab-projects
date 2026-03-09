@@ -1,0 +1,33 @@
+// Ring modulator with internal carrier oscillator
+// Knob 30: carrier frequency  Knob 31: carrier waveform (0=sine 1=saw)  Knob 32: mix
+
+fun process(input:real) : real {
+  mem phase;
+  mem freq_cc;
+  mem wave_cc;
+  mem mix_cc;
+
+  val sr   = 44100.0;
+  val freq = freq_cc * 1000.0 + 10.0;
+  phase = phase + freq / sr;
+  phase = if phase > 1.0 then phase - 1.0 else phase;
+
+  val sine_car = sin(6.283185 * phase);
+  val saw_car  = phase * 2.0 - 1.0;
+  val carrier  = if wave_cc < 0.5 then sine_car else saw_car;
+
+  val ring = input * carrier;
+  return input * (1.0 - mix_cc) + ring * mix_cc;
+}
+and noteOn(note:int, velocity:int, channel:int) { }
+and noteOff(note:int, channel:int) { }
+and controlChange(control:int, value:int, channel:int) {
+  if(control == 30) freq_cc = real(value) / 127.0;
+  if(control == 31) wave_cc = real(value) / 127.0;
+  if(control == 32) mix_cc  = real(value) / 127.0;
+}
+and default() {
+  freq_cc = 0.1;
+  wave_cc = 0.0;
+  mix_cc  = 1.0;
+}
