@@ -7,12 +7,32 @@
   "created_at": "2026-03-09",
   "license": "MIT",
   "category": "synthesizer",
-  "tags": ["synthesizer", "saw", "monophonic", "beginner"],
+  "tags": [
+    "synthesizer",
+    "saw",
+    "monophonic",
+    "beginner"
+  ],
   "complexity": "beginner",
   "type": "preset",
-  "inputs": { "audio": false, "midi": true, "cv": false },
+  "role": "instrument",
+  "inputs": {
+    "audio": false,
+    "midi": true,
+    "cv": false
+  },
   "knobs": {
-    "30": { "name": "Attack",  "description": "Envelope attack time, 0-2 seconds", "default": 0.05, "unit": "seconds" },
-    "31": { "name": "Release", "description": "Envelope release time, 0-3 seconds", "default": 0.3,  "unit": "seconds" }
+    "30": {
+      "name": "Attack",
+      "description": "Envelope attack time, 0-2 seconds",
+      "default": 0.05,
+      "unit": "seconds"
+    },
+    "31": {
+      "name": "Release",
+      "description": "Envelope release time, 0-3 seconds",
+      "default": 0.3,
+      "unit": "seconds"
+    }
   }
 }

@@ -7,14 +7,46 @@
   "created_at": "2026-03-09",
   "license": "MIT",
   "category": "drum",
-  "tags": ["drum", "kick", "bass-drum", "analog", "percussion", "808-style"],
+  "tags": [
+    "drum",
+    "kick",
+    "bass-drum",
+    "analog",
+    "percussion",
+    "808-style"
+  ],
   "complexity": "beginner",
   "type": "preset",
-  "inputs": { "audio": false, "midi": true, "cv": false },
+  "role": "instrument",
+  "inputs": {
+    "audio": false,
+    "midi": true,
+    "cv": false
+  },
   "knobs": {
-    "30": { "name": "Pitch Decay", "description": "How quickly the pitch falls after the strike", "default": 0.4, "unit": "norm" },
-    "31": { "name": "Amp Decay",   "description": "Overall amplitude decay time", "default": 0.5, "unit": "norm" },
-    "32": { "name": "Punch",       "description": "Level of noise transient at the attack", "default": 0.5, "unit": "norm" },
-    "33": { "name": "Tune",        "description": "Base pitch, 30 to 110 Hz", "default": 0.3, "unit": "hz" }
+    "30": {
+      "name": "Pitch Decay",
+      "description": "How quickly the pitch falls after the strike",
+      "default": 0.4,
+      "unit": "norm"
+    },
+    "31": {
+      "name": "Amp Decay",
+      "description": "Overall amplitude decay time",
+      "default": 0.5,
+      "unit": "norm"
+    },
+    "32": {
+      "name": "Punch",
+      "description": "Level of noise transient at the attack",
+      "default": 0.5,
+      "unit": "norm"
+    },
+    "33": {
+      "name": "Tune",
+      "description": "Base pitch, 30 to 110 Hz",
+      "default": 0.3,
+      "unit": "hz"
+    }
   }
 }

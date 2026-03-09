@@ -43,7 +43,16 @@ Current stable version: **1**
                                 // Common values: "MIT", "GPL-3.0", "CC0-1.0"
 
   // ── Classification ───────────────────────────────────────────────────────
-  "category": "filter",         // string, required. One of the values below.
+  "type": "preset",             // string, required. "preset" or "module".
+                                // Mirrors folder convention but explicit here.
+
+  "role": "effect",             // string, required for type=="preset". One of:
+                                //   "instrument" — generates sound (needs MIDI)
+                                //   "effect"     — processes audio input
+                                //   "utility"    — metering, routing, analysis
+                                // Not used for modules.
+
+  "category": "filter",         // string, required. Fine-grained subcategory.
                                 // Preset categories:
                                 //   "synthesizer" "filter" "effect" "utility"
                                 //   "drum" "sequencer" "modulator"
@@ -57,10 +66,6 @@ Current stable version: **1**
 
   "complexity": "intermediate", // string, required. One of:
                                 //   "beginner" "intermediate" "advanced"
-
-  // ── Functional ───────────────────────────────────────────────────────────
-  "type": "preset",             // string, required. "preset" or "module".
-                                // Mirrors folder convention but explicit here.
 
   "inputs": {                   // object, optional.
     "audio":  true,             //   bool: accepts audio input
@@ -103,17 +108,25 @@ Current stable version: **1**
 
 ---
 
-## Preset categories
+## Preset roles
 
 | Value | Meaning |
 |---|---|
-| `synthesizer` | Generates sound from MIDI — oscillator-based |
-| `drum` | Percussive sound generator |
-| `filter` | Processes audio through a filter |
-| `effect` | Time-based or non-linear effect (delay, reverb, chorus…) |
-| `modulator` | Primarily modifies timbre or dynamics (compressor, waveshaper…) |
-| `utility` | Signal routing, mixing, metering |
-| `sequencer` | Rhythmic or melodic pattern generator |
+| `instrument` | Generates sound, typically driven by MIDI noteOn/noteOff |
+| `effect` | Processes an audio input signal |
+| `utility` | Signal routing, metering, analysis — no primary audio character |
+
+## Preset categories (fine-grained, within a role)
+
+| Value | Role | Meaning |
+|---|---|---|
+| `synthesizer` | instrument | Oscillator-based sound generator |
+| `drum` | instrument | Percussive sound generator |
+| `sequencer` | instrument | Rhythmic or melodic pattern generator |
+| `filter` | effect | Processes audio through a filter |
+| `effect` | effect | Time-based or non-linear effect (delay, reverb, chorus…) |
+| `modulator` | effect | Modifies timbre or dynamics (compressor, waveshaper…) |
+| `utility` | utility | Signal routing, mixing, metering |
 
 ## Module categories
 

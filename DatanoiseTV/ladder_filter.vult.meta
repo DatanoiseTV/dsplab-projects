@@ -7,12 +7,34 @@
   "created_at": "2026-03-09",
   "license": "MIT",
   "category": "filter",
-  "tags": ["filter", "lowpass", "analog", "moog", "resonant", "saturation"],
+  "tags": [
+    "filter",
+    "lowpass",
+    "analog",
+    "moog",
+    "resonant",
+    "saturation"
+  ],
   "complexity": "intermediate",
   "type": "preset",
-  "inputs": { "audio": true, "midi": false, "cv": false },
+  "role": "effect",
+  "inputs": {
+    "audio": true,
+    "midi": false,
+    "cv": false
+  },
   "knobs": {
-    "30": { "name": "Cutoff",    "description": "Filter cutoff, exponentially scaled", "default": 0.5, "unit": "norm" },
-    "31": { "name": "Resonance", "description": "Filter resonance — self-oscillates above 0.95", "default": 0.1, "unit": "norm" }
+    "30": {
+      "name": "Cutoff",
+      "description": "Filter cutoff, exponentially scaled",
+      "default": 0.5,
+      "unit": "norm"
+    },
+    "31": {
+      "name": "Resonance",
+      "description": "Filter resonance \u2014 self-oscillates above 0.95",
+      "default": 0.1,
+      "unit": "norm"
+    }
   }
 }
