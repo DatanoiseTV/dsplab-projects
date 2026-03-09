@@ -1,0 +1,64 @@
+// Schroeder reverb (4 comb + 2 allpass)
+// Author: DatanoiseTV
+
+mem fb;
+mem mix;
+
+// Comb filter state
+mem c1: array(real, 1277);
+mem c2: array(real, 1491);
+mem c3: array(real, 1693);
+mem c4: array(real, 1867);
+mem ci1, ci2, ci3, ci4;
+
+// Allpass state
+mem a1: array(real, 556);
+mem a2: array(real, 441);
+mem ai1, ai2;
+
+fun comb(buf: array(real, 1277), idx: int, x: real, g: real) : real {
+  val y   = get(buf, idx);
+  val idx2 = (idx + 1) % 1277;
+  set(buf, idx2, x + g * y);
+  return y;
+}
+
+fun process(input: real) : real {
+  val dry = input;
+
+  // 4 parallel comb filters
+  val y1 = get(c1, ci1); set(c1, ci1, input + fb * y1); ci1 = (ci1 + 1) % 1277;
+  val y2 = get(c2, ci2); set(c2, ci2, input + fb * y2); ci2 = (ci2 + 1) % 1491;
+  val y3 = get(c3, ci3); set(c3, ci3, input + fb * y3); ci3 = (ci3 + 1) % 1693;
+  val y4 = get(c4, ci4); set(c4, ci4, input + fb * y4); ci4 = (ci4 + 1) % 1867;
+  val comb_sum = (y1 + y2 + y3 + y4) * 0.25;
+
+  // 2 series allpass
+  val ap1_in = comb_sum;
+  val ap1_d  = get(a1, ai1);
+  set(a1, ai1, ap1_in + 0.5 * ap1_d);
+  ai1 = (ai1 + 1) % 556;
+  val ap1_out = ap1_d - 0.5 * ap1_in;
+
+  val ap2_d  = get(a2, ai2);
+  set(a2, ai2, ap1_out + 0.5 * ap2_d);
+  ai2 = (ai2 + 1) % 441;
+  val wet = ap2_d - 0.5 * ap1_out;
+
+  return dry * (1.0 - mix) + wet * mix;
+}
+
+and noteOn(note: int, velocity: int, channel: int) { }
+and noteOff(note: int, channel: int) { }
+
+and controlChange(control: int, value: int, channel: int) {
+  if (control == 30) fb  = real(value) / 127.0 * 0.9;
+  if (control == 31) mix = real(value) / 127.0;
+}
+
+and default() {
+  fb  = 0.7;
+  mix = 0.4;
+  ci1 = 0; ci2 = 0; ci3 = 0; ci4 = 0;
+  ai1 = 0; ai2 = 0;
+}

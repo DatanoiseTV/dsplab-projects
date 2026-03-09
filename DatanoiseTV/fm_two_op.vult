@@ -1,0 +1,45 @@
+// Two-operator FM synthesizer
+// Author: DatanoiseTV
+
+mem phase_c, phase_m;
+mem freq, ratio, index, amp;
+mem gate;
+
+fun process(input: real) : real {
+  val sr     = 44100.0;
+  val fc     = 440.0 * pow(2.0, (freq - 69.0) / 12.0);
+  val fm     = fc * ratio;
+  val mod    = sin(6.283185 * phase_m) * index * fm / sr;
+
+  phase_m = phase_m + (fm / sr) + mod * 0.0001;
+  if (phase_m > 1.0) phase_m = phase_m - 1.0;
+
+  phase_c = phase_c + (fc + mod) / sr;
+  if (phase_c > 1.0) phase_c = phase_c - 1.0;
+
+  return sin(6.283185 * phase_c) * amp * (if gate then 1.0 else 0.0);
+}
+
+and noteOn(note: int, velocity: int, channel: int) {
+  freq  = real(note);
+  amp   = real(velocity) / 127.0;
+  gate  = true;
+  phase_c = 0.0;
+  phase_m = 0.0;
+}
+
+and noteOff(note: int, channel: int) {
+  gate = false;
+}
+
+and controlChange(control: int, value: int, channel: int) {
+  if (control == 30) ratio = real(value) / 16.0 + 0.5;
+  if (control == 31) index = real(value) / 10.0;
+}
+
+and default() {
+  ratio = 2.0;
+  index = 3.0;
+  amp   = 0.5;
+  gate  = false;
+}
