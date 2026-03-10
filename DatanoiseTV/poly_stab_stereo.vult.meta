@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "name": "Poly Analog Stab",
+  "description": "6-voice polyphonic analog-style stab synthesizer. Features detuned dual oscillators, punchy moog-style ladder filters, and a lush roland-style stereo chorus.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-10",
+  "license": "MIT",
+  "category": "synthesizer",
+  "tags": [
+    "synthesizer",
+    "polyphonic",
+    "analog",
+    "stab",
+    "stereo"
+  ],
+  "complexity": "advanced",
+  "type": "preset",
+  "role": "instrument",
+  "inputs": {
+    "audio": false,
+    "midi": true,
+    "cv": false
+  },
+  "knobs": {
+    "30": {
+      "name": "Cutoff",
+      "description": "Filter base cutoff frequency",
+      "default": 0.15,
+      "unit": "normalized"
+    },
+    "31": {
+      "name": "Resonance",
+      "description": "Filter resonance amount",
+      "default": 0.4,
+      "unit": "normalized"
+    },
+    "32": {
+      "name": "Env Decay",
+      "description": "Filter envelope decay time",
+      "default": 0.25,
+      "unit": "seconds"
+    },
+    "33": {
+      "name": "Chorus (Width)",
+      "description": "Stereo width and chorus depth",
+      "default": 0.5,
+      "unit": "normalized"
+    },
+    "34": {
+      "name": "Detune",
+      "description": "Oscillator detune amount",
+      "default": 0.2,
+      "unit": "cents"
+    },
+    "35": {
+      "name": "Env Depth",
+      "description": "Filter envelope modulation depth",
+      "default": 0.6,
+      "unit": "normalized"
+    }
+  }
+}

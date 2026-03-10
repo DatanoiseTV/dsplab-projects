@@ -1,0 +1,183 @@
+/*
+ * Polyphonic Analog Stab Synth
+ * 6-voice polyphonic analog stab with detuned saws, 
+ * punchy ladder filter, and premium stereo width.
+ *
+ * CC 30: Cutoff
+ * CC 31: Resonance
+ * CC 32: Filter Env Decay
+ * CC 33: Chorus/Width
+ * CC 34: Detune Amount
+ * CC 35: Filter Env Depth
+ */
+
+// --- UTILITIES ---
+
+fun pitchToRate(pitch: real) : real @[table(size=127,min=0.0,max=127.0)] {
+    return 8.1757989156 * exp(0.05776226505 * pitch) / 44100.0;
+}
+
+fun polyblep(phase: real, inc: real) : real {
+    val t = phase / inc;
+    if (t < 1.0) { return t + t - t * t - 1.0; } 
+    else if (t > (1.0 / inc) - 1.0) {
+        val t2 = (t - (1.0 / inc));
+        return t2 * t2 + t2 + t2 + 1.0;
+    }
+    return 0.0;
+}
+
+// --- OSCILLATOR ---
+
+fun saw(phase: real, inc: real) : real {
+    return (phase * 2.0 - 1.0) - polyblep(phase, inc);
+}
+
+// --- ENVELOPE (Fast AD for Stabs) ---
+
+fun ad_env(gate: bool, decay: real) : real {
+    mem out;
+    val inc = 1.0 / (decay * 44100.0 + 10.0);
+    if(gate) {
+        out = 1.0; // Trigger
+    } else {
+        out = out - inc;
+        if(out < 0.0) out = 0.0;
+    }
+    return out;
+}
+
+// Fixed ADSR for the voice amplitude
+fun adsr(gate: bool, a: real, d: real, s: real, r: real) : real {
+    mem state; // 0: off, 1: attack, 2: decay, 3: sustain, 4: release
+    mem out;
+    val a_rate = 1.0 / (a * 44100.0 + 1.0);
+    val d_rate = (1.0 - s) / (d * 44100.0 + 1.0);
+    val r_rate = s / (r * 44100.0 + 1.0);
+
+    if(gate) {
+        if(state == 0 || state == 4) state = 1;
+    } else {
+        if(state != 0) state = 4;
+    }
+
+    if(state == 1) {
+        out = out + a_rate;
+        if(out >= 1.0) { out = 1.0; state = 2; }
+    } else if(state == 2) {
+        out = out - d_rate;
+        if(out <= s) { out = s; state = 3; }
+    } else if(state == 4) {
+        out = out - r_rate;
+        if(out <= 0.0) { out = 0.0; state = 0; }
+    }
+    return out;
+}
+
+// --- FILTER ---
+
+fun ladder(input: real, cutoff: real, res: real) : real {
+    mem p0, p1, p2, p3;
+    val f = clip(cutoff * 1.16, 0.0, 1.0);
+    val fb = res * 4.0 * (1.0 - 0.15 * f * f);
+    val x = input - fb * p3;
+    p0 = p0 + f * (tanh(x) - tanh(p0));
+    p1 = p1 + f * (p0 - p1);
+    p2 = p2 + f * (p1 - p2);
+    p3 = p3 + f * (p2 - p3);
+    return p3;
+}
+
+// --- VOICE ---
+
+fun voice(gate: bool, note: real, cutoff_base: real, res: real, decay: real, detune: real, env_depth: real) : real {
+    mem p1, p2;
+    val rate = pitchToRate(note);
+    p1 = (p1 + rate) % 1.0;
+    p2 = (p2 + rate * (1.0 + detune * 0.02)) % 1.0;
+    
+    val osc = (saw(p1, rate) + saw(p2, rate * (1.0 + detune * 0.02))) * 0.5;
+    
+    val amp_env = adsr(gate, 0.005, 0.2, 0.1, 0.2);
+    val f_env = ad_env(gate, decay);
+    
+    val filt_freq = clip(cutoff_base + f_env * env_depth, 0.0, 0.95);
+    val filtered = ladder(osc * amp_env, filt_freq, res);
+    
+    return filtered;
+}
+
+// --- CHORUS ---
+
+fun roland_chorus(l: real, r: real, depth: real) : real, real {
+    mem lfo_p;
+    val lfo = sin(lfo_p * 2.0 * 3.14159);
+    lfo_p = (lfo_p + 0.3 / 44100.0) % 1.0;
+    
+    val wide = (l + r) * 0.5;
+    val diff = (l - r) * 0.5 + lfo * depth * 0.5 * (l + r);
+    return wide + diff, wide - diff;
+}
+
+// --- MAIN ARCHITECTURE ---
+
+mem n1, n2, n3, n4, n5, n6;
+mem g1, g2, g3, g4, g5, g6;
+mem v_ptr;
+mem cutoff_cc, res_cc, decay_cc, fx_cc, detune_cc, depth_cc;
+
+fun process(input: real) : real, real {
+    val o1 = voice(g1, n1, cutoff_cc, res_cc, decay_cc, detune_cc, depth_cc);
+    val o2 = voice(g2, n2, cutoff_cc, res_cc, decay_cc, detune_cc, depth_cc);
+    val o3 = voice(g3, n3, cutoff_cc, res_cc, decay_cc, detune_cc, depth_cc);
+    val o4 = voice(g4, n4, cutoff_cc, res_cc, decay_cc, detune_cc, depth_cc);
+    val o5 = voice(g5, n5, cutoff_cc, res_cc, decay_cc, detune_cc, depth_cc);
+    val o6 = voice(g6, n6, cutoff_cc, res_cc, decay_cc, detune_cc, depth_cc);
+    
+    // Spread voices in stereo
+    val mixL = (o1 + o3 + o5) * 0.3 + (o2 + o4 + o6) * 0.1;
+    val mixR = (o2 + o4 + o6) * 0.3 + (o1 + o3 + o5) * 0.1;
+    
+    val l, r = roland_chorus(mixL, mixR, fx_cc);
+    return l, r;
+}
+
+fun noteOn(note: int, velocity: int, channel: int) {
+    val rn = real(note);
+    v_ptr = (v_ptr + 1) % 6;
+    if(v_ptr == 0) { n1 = rn; g1 = true; }
+    else if(v_ptr == 1) { n2 = rn; g2 = true; }
+    else if(v_ptr == 2) { n3 = rn; g3 = true; }
+    else if(v_ptr == 3) { n4 = rn; g4 = true; }
+    else if(v_ptr == 4) { n5 = rn; g5 = true; }
+    else if(v_ptr == 5) { n6 = rn; g6 = true; }
+}
+
+fun noteOff(note: int, channel: int) {
+    val rn = real(note);
+    if(n1 == rn) g1 = false;
+    if(n2 == rn) g2 = false;
+    if(n3 == rn) g3 = false;
+    if(n4 == rn) g4 = false;
+    if(n5 == rn) g5 = false;
+    if(n6 == rn) g6 = false;
+}
+
+fun controlChange(control: int, value: int, channel: int) {
+    val v = real(value) / 127.0;
+    if(control == 30) cutoff_cc = v;
+    if(control == 31) res_cc = v;
+    if(control == 32) decay_cc = v;
+    if(control == 33) fx_cc = v;
+    if(control == 34) detune_cc = v;
+    if(control == 35) depth_cc = v;
+}
+
+fun default() {
+    cutoff_cc = 0.15;
+    res_cc = 0.4;
+    decay_cc = 0.25;
+    fx_cc = 0.5;
+    detune_cc = 0.2;
+    depth_cc = 0.6;
+}
