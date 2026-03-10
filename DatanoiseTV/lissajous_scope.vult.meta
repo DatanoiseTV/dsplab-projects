@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Lissajous Generator",
+  "description": "Generates oscillating stereophonic sine waves designed to draw complex Lissajous figures in the X/Y scope mode.",
+  "author": "DatanoiseTV",
+  "version": "1.0",
+  "created_at": "2026-03-10",
+  "license": "MIT",
+  "category": "Generator",
+  "tags": ["oscillator", "stereo", "lissajous", "xy", "demo"],
+  "complexity": "beginner",
+  "type": "preset",
+  "role": "instrument",
+  "knobs": {
+    "10": { "name": "X Freq", "unit": "hz", "default": 13 },
+    "11": { "name": "Y Freq", "unit": "hz", "default": 13 },
+    "12": { "name": "Mod Rate", "unit": "hz", "default": 13 },
+    "13": { "name": "Phase", "unit": "norm", "default": 32 }
+  }
+}

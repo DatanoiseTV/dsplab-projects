@@ -1,0 +1,57 @@
+// Lissajous Curve Generator for X/Y Scope
+// Designed to draw complex Lissajous figures in stereophonic X/Y modes.
+// Try slowly adjusting X Freq and Y Freq, or turn up Mod Rate to see it dance!
+
+fun process(input:real) {
+  mem phase_x;
+  mem phase_y;
+  mem lfo_phase;
+  
+  mem freq_x;
+  mem freq_y;
+  mem mod_rate;
+  mem phase_offset;
+
+  val sr = 44100.0;
+  
+  // Internal LFO to slowly morph the Y axis frequency
+  lfo_phase = lfo_phase + mod_rate / sr;
+  lfo_phase = if lfo_phase > 1.0 then lfo_phase - 1.0 else lfo_phase;
+  
+  val lfo = sin(lfo_phase * 6.2831853);
+  
+  // Modulate Y frequency by +/- 2 Hz based on LFO
+  val current_freq_y = freq_y + lfo * 2.0; 
+  
+  phase_x = phase_x + freq_x / sr;
+  phase_x = if phase_x > 1.0 then phase_x - 1.0 else phase_x;
+  
+  phase_y = phase_y + current_freq_y / sr;
+  phase_y = if phase_y > 1.0 then phase_y - 1.0 else phase_y;
+  
+  val out_x = sin(phase_x * 6.2831853);
+  val out_y = sin((phase_y + phase_offset) * 6.2831853);
+  
+  return out_x, out_y;
+}
+
+and noteOn(note:int, velocity:int, channel:int) { }
+and noteOff(note:int, channel:int) { }
+
+and controlChange(control:int, value:int, channel:int) {
+  val norm = real(value) / 127.0;
+  // Frequencies mapped between 10 Hz and 410 Hz
+  if(control == 10) freq_x = norm * 400.0 + 10.0; 
+  if(control == 11) freq_y = norm * 400.0 + 10.0;
+  // LFO rate mapped between 0 and 5 Hz
+  if(control == 12) mod_rate = norm * 5.0;
+  // Phase offset mapped between 0 and 1
+  if(control == 13) phase_offset = norm;
+}
+
+and default() {
+  freq_x = 51.0;        // Example: 50 Hz base + slight offset
+  freq_y = 50.0;        // Start near matched
+  mod_rate = 0.5;
+  phase_offset = 0.25;  // 90 degrees out of phase = circle
+}
