@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "name": "Vult VS-80 Stereo",
+  "description": "Premium stereo polyphonic CS-80 emulation with dual VCOs, saturation, chorus, and shimmer reverb. Fully stereo signal path.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-10",
+  "license": "MIT",
+  "category": "synthesizer",
+  "tags": [
+    "synthesizer",
+    "analog",
+    "cs80",
+    "polyphonic",
+    "stereo",
+    "shimmer",
+    "reverb"
+  ],
+  "complexity": "advanced",
+  "type": "preset",
+  "role": "instrument",
+  "inputs": {
+    "audio": false,
+    "midi": true,
+    "cv": false
+  },
+  "knobs": {
+    "30": { "name": "Vibrato Rate", "default": 0.4, "unit": "hz" },
+    "31": { "name": "Vibrato Depth", "default": 0.1, "unit": "norm" },
+    "32": { "name": "PWM Amt", "default": 0.2, "unit": "norm" },
+    "33": { "name": "Reverb Mix", "default": 0.4, "unit": "norm" },
+    "34": { "name": "Reverb Decay", "default": 0.8, "unit": "norm" },
+    "35": { "name": "Reverb Shimmer", "default": 0.5, "unit": "norm" },
+    "40": { "name": "Drive", "default": 0.3, "unit": "norm" },
+    "41": { "name": "Master Vol", "default": 0.8, "unit": "norm" }
+  }
+}
