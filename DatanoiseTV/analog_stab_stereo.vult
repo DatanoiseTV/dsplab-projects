@@ -28,7 +28,7 @@ fun polyblep(phase: real, inc: real) : real {
 // --- OSCILLATORS ---
 
 fun pulse(phase: real, pw: real, inc: real) : real {
-    val out = if (phase < pw) 1.0 else -1.0;
+    val out = if phase < pw then 1.0 else -1.0;
     return out + polyblep(phase, inc) - polyblep((phase + 1.0 - pw) % 1.0, inc);
 }
 
