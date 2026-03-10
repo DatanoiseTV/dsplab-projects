@@ -2,14 +2,7 @@
  * Analog Stab Stereo Patch
  * A classic analog-style stab with dual detuned oscillators,
  * a punchy ladder filter, and built-in stereo chorus/widener.
- *
- * CC 30: Filter Cutoff
- * CC 31: Filter Resonance
- * CC 32: Filter Envelope Decay
- * CC 33: FX Mix (Stereo Widener)
  */
-
-// --- MATH UTILITIES ---
 
 fun pitchToRate(pitch: real) : real @[table(size=127,min=0.0,max=127.0)] {
     return 8.1757989156 * exp(0.05776226505 * pitch) / 44100.0;
@@ -25,8 +18,6 @@ fun polyblep(phase: real, inc: real) : real {
     return 0.0;
 }
 
-// --- OSCILLATORS ---
-
 fun pulse(phase: real, pw: real, inc: real) : real {
     val out = if phase < pw then 1.0 else -1.0;
     return out + polyblep(phase, inc) - polyblep((phase + 1.0 - pw) % 1.0, inc);
@@ -36,28 +27,16 @@ fun saw(phase: real, inc: real) : real {
     return (phase * 2.0 - 1.0) - polyblep(phase, inc);
 }
 
-// --- ENVELOPE ---
-
 fun adr(gate: real, a: real, d: real, r: real) : real {
-    mem state; // 0: off, 1: attack, 2: decay/release
+    mem state;
     mem out;
-    
     val a_rate = 1.0 / (a * 44100.0 + 1.0);
     val d_rate = 1.0 / (d * 44100.0 + 1.0);
     val r_rate = 1.0 / (r * 44100.0 + 1.0);
-    
-    if(gate > 0.0) {
-        if(state == 0) state = 1;
-    } else {
-        state = 0;
-    }
-    
+    if(gate > 0.0) { if(state == 0) state = 1; } else { state = 0; }
     if(state == 1) {
         out = out + a_rate;
-        if(out >= 1.0) {
-            out = 1.0;
-            state = 2;
-        }
+        if(out >= 1.0) { out = 1.0; state = 2; }
     } else if (state == 2) {
         out = out - d_rate;
         if(out <= 0.0) out = 0.0;
@@ -65,11 +44,8 @@ fun adr(gate: real, a: real, d: real, r: real) : real {
         out = out - r_rate;
         if(out <= 0.0) out = 0.0;
     }
-    
     return out;
 }
-
-// --- FILTER ---
 
 fun ladder(input: real, cutoff: real, res: real) : real {
     mem p0, p1, p2, p3;
@@ -83,60 +59,47 @@ fun ladder(input: real, cutoff: real, res: real) : real {
     return p3;
 }
 
-// --- STEREO EFFECT ---
-
-fun chorus(input: real, amount: real) : real, real {
+fun chorus(input: real, amount: real) {
     mem lfo_p;
     val lfo = sin(lfo_p * 2.0 * 3.14159265);
     lfo_p = (lfo_p + 0.1 / 44100.0) % 1.0;
-    
     val wide = input * amount * lfo;
     return input + wide, input - wide;
 }
 
-// --- MAIN VOICE ---
-
-mem gate, current_note;
-mem cutoff_cc, res_cc, decay_cc, fx_cc;
-
-fun process(input: real) : real, real {
+fun process(input: real) {
+    mem gate, current_note;
+    mem cutoff_cc, res_cc, decay_cc, fx_cc;
     mem p1, p2;
-    
     val rate = pitchToRate(real(current_note));
     p1 = (p1 + rate) % 1.0;
     p2 = (p2 + rate * 1.002) % 1.0;
-    
     val osc1 = saw(p1, rate);
     val osc2 = pulse(p2, 0.5, rate * 1.002);
-    
     val env = adr(gate, 0.005, decay_cc * 0.8 + 0.02, 0.1);
-    
     val filt_freq = clip(cutoff_cc * 0.5 + env * 1.5, 0.0, 0.95);
     val filtered = ladder((osc1 + osc2) * 0.4 * env, filt_freq, res_cc);
-    
-    val l, r = chorus(filtered, fx_cc);
-    
-    return l, r;
+    return chorus(filtered, fx_cc);
 }
 
-fun noteOn(note: int, velocity: int, channel: int) {
+and noteOn(note: int, velocity: int, channel: int) {
     gate = 1.0;
     current_note = note;
 }
 
-fun noteOff(note: int, channel: int) {
-    if(note == current_note) gate = 0.0;
+and noteOff(note: int, channel: int) {
+    if(note == current_note) { gate = 0.0; }
 }
 
-fun controlChange(control: int, value: int, channel: int) {
+and controlChange(control: int, value: int, channel: int) {
     val v = real(value) / 127.0;
-    if(control == 30) cutoff_cc = v;
-    if(control == 31) res_cc = v;
-    if(control == 32) decay_cc = v;
-    if(control == 33) fx_cc = v;
+    if(control == 30) { cutoff_cc = v; }
+    if(control == 31) { res_cc = v; }
+    if(control == 32) { decay_cc = v; }
+    if(control == 33) { fx_cc = v; }
 }
 
-fun default() {
+and default() {
     cutoff_cc = 0.2;
     res_cc = 0.4;
     decay_cc = 0.3;
