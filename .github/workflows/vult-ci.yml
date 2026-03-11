@@ -9,6 +9,8 @@ on:
 jobs:
   check-presets:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,3 +53,14 @@ jobs:
           fi
           
           echo "All .vult files have corresponding .meta files and compile successfully!"
+
+      - name: Create Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: r${{ github.run_number }}
+          name: Release r${{ github.run_number }}
+          body: "Auto-generated release from commit ${{ github.sha }}"
+          draft: false
+          prerelease: false
+          make_latest: true
