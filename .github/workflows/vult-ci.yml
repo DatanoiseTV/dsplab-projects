@@ -1,0 +1,53 @@
+name: Vult CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-presets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install Vult
+        run: npm install -g vult
+        
+      - name: Check Vult files and metadata
+        run: |
+          # Find all .vult files in the repository
+          FILES=$(find . -type f -name "*.vult")
+          
+          SUCCESS=true
+          
+          for file in $FILES; do
+            echo "Checking $file..."
+            
+            # Check if corresponding .vult.meta exists
+            if [ ! -f "${file}.meta" ]; then
+              echo "::error file=$file::Missing corresponding .meta file for $file"
+              SUCCESS=false
+            fi
+            
+            # Check if the .vult file compiles
+            # Adding the repository root (-i .) to the include path for module resolution
+            if ! npx vultc -check -i . "$file"; then
+              echo "::error file=$file::Compilation failed for $file"
+              SUCCESS=false
+            fi
+          done
+          
+          if [ "$SUCCESS" = false ]; then
+            echo "One or more checks failed."
+            exit 1
+          fi
+          
+          echo "All .vult files have corresponding .meta files and compile successfully!"
