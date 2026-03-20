@@ -1,129 +1,104 @@
 // ============================================================================
 // ANALOG BUS COMPRESSOR
 // Master bus dynamics processor with analog-style character
-// Soft-knee detection, program-dependent release, transformer saturation
+// Soft-knee detection, transformer saturation, sidechain HPF
 // ============================================================================
 
-// CC30: Threshold (-40dB to 0dB)
-// CC31: Ratio (1:1 to 20:1)
-// CC32: Attack (0.1ms to 30ms)
-// CC33: Release (50ms to 1200ms, program-dependent)
-// CC34: Makeup Gain (0dB to +24dB)
-// CC35: Mix (dry/wet for parallel compression)
-// CC36: Sidechain HPF (off to 300Hz)
-// CC37: Saturation (transformer coloring)
+// CC30: Threshold  CC31: Ratio  CC32: Attack  CC33: Release
+// CC34: Makeup Gain  CC35: Mix  CC36: SC HPF  CC37: Saturation
 
 fun softclip(x:real) : real {
-  if (x > 1.0) return 1.0 - 1.0 / (1.0 + (x - 1.0) * 2.0);
-  if (x < -1.0) return -1.0 + 1.0 / (1.0 - (x + 1.0) * 2.0);
-  return x;
+  val ax = abs(x);
+  val sign = if x >= 0.0 then 1.0 else -1.0;
+  val out = if ax > 1.0 then 1.0 - 1.0 / (1.0 + (ax - 1.0) * 2.0) else ax;
+  return out * sign;
 }
 
 fun process(input:real) : real {
-  mem threshold_cc;  // CC30
-  mem ratio_cc;      // CC31
-  mem attack_cc;     // CC32
-  mem release_cc;    // CC33
-  mem makeup_cc;     // CC34
-  mem mix_cc;        // CC35
-  mem hpf_cc;        // CC36
-  mem sat_cc;        // CC37
+  mem threshold_cc;
+  mem ratio_cc;
+  mem attack_cc;
+  mem release_cc;
+  mem makeup_cc;
+  mem mix_cc;
+  mem hpf_cc;
+  mem sat_cc;
 
   mem env;
   mem gain_smooth;
   mem sc_hp_z1;
-  mem gr_display;
 
   val sr = samplerate();
 
   // --- Sidechain HPF (1-pole, removes low-end pumping) ---
   val hpf_freq = hpf_cc * 300.0;
-  val sc_input = input;
-  if (hpf_freq > 5.0) {
-    val hpf_coeff = exp(-2.0 * 3.14159265 * hpf_freq / sr);
-    val hp_out = sc_input - sc_hp_z1;
-    sc_hp_z1 = sc_hp_z1 + (sc_input - sc_hp_z1) * (1.0 - hpf_coeff);
-    // Use hp_out as sidechain
-    val sc_signal = hp_out;
-  }
-  else {
-    val sc_signal = sc_input;
-  }
+  val hpf_coeff = exp(-2.0 * 3.14159265 * max(hpf_freq, 5.0) / sr);
+  val sc_filtered = input - sc_hp_z1;
+  sc_hp_z1 = sc_hp_z1 + (input - sc_hp_z1) * (1.0 - hpf_coeff);
+  val sc_input = if hpf_freq > 5.0 then sc_filtered else input;
 
-  // --- Level detection (RMS with peak blend for transient response) ---
+  // --- Level detection (RMS envelope) ---
   val sq = sc_input * sc_input;
-  val peak_val = abs(sc_input);
 
   // Attack: 0.1ms to 30ms
   val atk_ms = attack_cc * 29.9 + 0.1;
   val atk_coeff = 1.0 - exp(-2.2 / (atk_ms * 0.001 * sr));
 
-  // Release: 50ms to 1200ms (program-dependent: faster release when signal drops quickly)
+  // Release: 50ms to 1200ms
   val rel_ms = release_cc * 1150.0 + 50.0;
   val rel_coeff = 1.0 - exp(-2.2 / (rel_ms * 0.001 * sr));
 
-  // Envelope follower with separate attack/release
-  val env_target = sq;
-  val env_k = if env_target > env then atk_coeff else rel_coeff;
-  env = env + (env_target - env) * env_k;
-  val level_db = if env > 0.0000001 then 10.0 * log(env + 0.0000001) / log(10.0) else -120.0;
-  // Convert from power dB to amplitude dB
-  val level_db_amp = level_db * 0.5;
+  // Envelope follower
+  val env_k = if sq > env then atk_coeff else rel_coeff;
+  env = env + (sq - env) * env_k;
+  val rms = sqrt(env + 0.0000001);
+  val level_db = 20.0 * log(rms + 0.0000001) / log(10.0);
 
   // --- Threshold & Ratio ---
-  val thresh_db = threshold_cc * 40.0 - 40.0;  // -40dB to 0dB
-  val ratio = ratio_cc * 19.0 + 1.0;           // 1:1 to 20:1
+  val thresh_db = threshold_cc * 40.0 - 40.0;
+  val ratio = ratio_cc * 19.0 + 1.0;
 
-  // --- Soft-knee gain computation (6dB knee width) ---
+  // --- Soft-knee gain computation (6dB knee) ---
   val knee_db = 6.0;
   val half_knee = knee_db * 0.5;
-  val over_db = level_db_amp - thresh_db;
+  val over_db = level_db - thresh_db;
+
+  // Below knee: no compression. Above knee: full ratio. In knee: smooth blend.
+  val gr_below = 0.0;
+  val gr_above = over_db * (1.0 - 1.0 / ratio);
+  val knee_x = over_db + half_knee;
+  val gr_knee = knee_x * knee_x / (4.0 * knee_db) * (1.0 - 1.0 / ratio);
 
   val gain_reduction_db =
-    if over_db <= -half_knee then
-      0.0
-    else if over_db >= half_knee then
-      over_db * (1.0 - 1.0 / ratio)
-    else {
-      val x = over_db + half_knee;
-      val gr = x * x / (4.0 * knee_db) * (1.0 - 1.0 / ratio);
-      gr;
-    };
+    if over_db <= -half_knee then gr_below
+    else if over_db >= half_knee then gr_above
+    else gr_knee;
 
   // Target gain in linear
   val target_gain = if gain_reduction_db > 0.001
     then pow(10.0, -gain_reduction_db / 20.0)
     else 1.0;
 
-  // Smooth the gain (ballistics already handled by envelope, but add minimal smoothing)
-  val smooth_coeff = 0.005;
-  gain_smooth = gain_smooth + (target_gain - gain_smooth) * smooth_coeff;
+  // Smooth gain changes
+  gain_smooth = gain_smooth + (target_gain - gain_smooth) * 0.005;
 
   // --- Makeup gain: 0dB to +24dB ---
-  val makeup_db = makeup_cc * 24.0;
-  val makeup_gain = pow(10.0, makeup_db / 20.0);
+  val makeup_gain = pow(10.0, makeup_cc * 24.0 / 20.0);
 
   // Apply compression
   val compressed = input * gain_smooth * makeup_gain;
 
-  // --- Transformer saturation (subtle harmonic coloring) ---
+  // --- Transformer saturation ---
   val sat_amount = sat_cc * 0.6;
+  val drive = 1.0 + sat_amount * 2.0;
+  val driven = compressed * drive;
+  val clipped = softclip(driven);
   val saturated = if sat_amount > 0.01
-    then {
-      val driven = compressed * (1.0 + sat_amount * 2.0);
-      val clipped = softclip(driven);
-      val out = clipped / (1.0 + sat_amount * 2.0) * (1.0 + sat_amount * 0.3);
-      out;
-    }
+    then clipped / drive * (1.0 + sat_amount * 0.3)
     else compressed;
 
   // --- Dry/Wet mix (parallel compression) ---
-  val wet = mix_cc;
-  val dry = 1.0 - wet;
-  val output = input * dry + saturated * wet;
-
-  // Store gain reduction for display
-  gr_display = gain_reduction_db;
+  val output = input * (1.0 - mix_cc) + saturated * mix_cc;
 
   return output;
 }
@@ -136,23 +111,22 @@ and controlChange(control:int, value:int, channel:int) {
   if (control == 31) ratio_cc     = real(value) / 127.0; // Ratio
   if (control == 32) attack_cc    = real(value) / 127.0; // Attack
   if (control == 33) release_cc   = real(value) / 127.0; // Release
-  if (control == 34) makeup_cc    = real(value) / 127.0; // Makeup Gain
+  if (control == 34) makeup_cc    = real(value) / 127.0; // Makeup
   if (control == 35) mix_cc       = real(value) / 127.0; // Mix
   if (control == 36) hpf_cc       = real(value) / 127.0; // SC HPF
   if (control == 37) sat_cc       = real(value) / 127.0; // Saturation
 }
 
 and default() {
-  threshold_cc = 0.5;   // -20dB
-  ratio_cc     = 0.2;   // ~5:1
-  attack_cc    = 0.3;   // ~9ms
-  release_cc   = 0.3;   // ~400ms
-  makeup_cc    = 0.2;   // ~5dB
-  mix_cc       = 1.0;   // 100% wet
-  hpf_cc       = 0.1;   // ~30Hz HPF
-  sat_cc       = 0.15;  // subtle saturation
+  threshold_cc = 0.5;
+  ratio_cc     = 0.2;
+  attack_cc    = 0.3;
+  release_cc   = 0.3;
+  makeup_cc    = 0.2;
+  mix_cc       = 1.0;
+  hpf_cc       = 0.1;
+  sat_cc       = 0.15;
   env          = 0.0;
   gain_smooth  = 1.0;
   sc_hp_z1     = 0.0;
-  gr_display   = 0.0;
 }
