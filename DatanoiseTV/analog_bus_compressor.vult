@@ -28,7 +28,7 @@ fun process(input:real) : real {
   mem gain_smooth;
   mem sc_hp_z1;
 
-  val sr = samplerate();
+  val sr = 44100.0;
 
   // --- Sidechain HPF (1-pole, removes low-end pumping) ---
   val hpf_freq = hpf_cc * 300.0;
