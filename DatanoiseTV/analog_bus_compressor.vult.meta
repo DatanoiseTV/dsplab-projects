@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "name": "Analog Bus Compressor",
+  "description": "Master bus dynamics processor with analog character. Features soft-knee compression, program-dependent release, sidechain HPF to prevent low-end pumping, transformer-style saturation for harmonic warmth, and dry/wet mix for parallel compression.",
+  "author": "DatanoiseTV",
+  "version": "1.0.0",
+  "created_at": "2026-03-20",
+  "license": "MIT",
+  "category": "effect",
+  "tags": [
+    "effect",
+    "compressor",
+    "dynamics",
+    "bus",
+    "mastering",
+    "analog",
+    "saturation",
+    "parallel"
+  ],
+  "complexity": "advanced",
+  "type": "preset",
+  "role": "effect",
+  "inputs": {
+    "audio": true,
+    "midi": false,
+    "cv": false
+  },
+  "knobs": {
+    "30": {
+      "name": "Threshold",
+      "description": "Compression threshold, -40dB to 0dB",
+      "default": 0.5,
+      "unit": "db"
+    },
+    "31": {
+      "name": "Ratio",
+      "description": "Compression ratio, 1:1 to 20:1",
+      "default": 0.2,
+      "unit": "norm"
+    },
+    "32": {
+      "name": "Attack",
+      "description": "Attack time, 0.1ms to 30ms",
+      "default": 0.3,
+      "unit": "seconds"
+    },
+    "33": {
+      "name": "Release",
+      "description": "Release time, 50ms to 1200ms (program-dependent)",
+      "default": 0.3,
+      "unit": "seconds"
+    },
+    "34": {
+      "name": "Makeup Gain",
+      "description": "Post-compression gain boost, 0dB to +24dB",
+      "default": 0.2,
+      "unit": "db"
+    },
+    "35": {
+      "name": "Mix",
+      "description": "Dry/wet blend for parallel compression",
+      "default": 1.0,
+      "unit": "percent"
+    },
+    "36": {
+      "name": "SC HPF",
+      "description": "Sidechain high-pass filter, off to 300Hz. Prevents low-end from triggering compression.",
+      "default": 0.1,
+      "unit": "hz"
+    },
+    "37": {
+      "name": "Saturation",
+      "description": "Transformer-style harmonic coloring",
+      "default": 0.15,
+      "unit": "norm"
+    }
+  }
+}
