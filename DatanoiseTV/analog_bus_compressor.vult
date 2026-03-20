@@ -32,7 +32,8 @@ fun process(input:real) : real {
 
   // --- Sidechain HPF (1-pole, removes low-end pumping) ---
   val hpf_freq = hpf_cc * 300.0;
-  val hpf_coeff = exp(-2.0 * 3.14159265 * max(hpf_freq, 5.0) / sr);
+  val hpf_f = if hpf_freq > 5.0 then hpf_freq else 5.0;
+  val hpf_coeff = exp(-2.0 * 3.14159265 * hpf_f / sr);
   val sc_filtered = input - sc_hp_z1;
   sc_hp_z1 = sc_hp_z1 + (input - sc_hp_z1) * (1.0 - hpf_coeff);
   val sc_input = if hpf_freq > 5.0 then sc_filtered else input;
